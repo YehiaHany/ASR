@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>واجهة الموقع - التعرف على الصوت</title>
+    <link rel="icon" href="https://media.istockphoto.com/id/1016623352/vector/microphone-icon-isolated-on-blue-background-flat-design-vector-illustration.jpg?s=612x612&w=0&k=20&c=-U7U6YuQGhxsdB3TQT1G6g71GrWVQNUnoVAsAg03SRM=" type="image/x-icon">
+
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            color: #333;
+            padding-top: 0;
+        }
+
+        header {
+            background-color: #002244;
+            color: white;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.8em;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .container h2 {
+            font-size: 2em;
+            color: #002244;
+            margin-bottom: 20px;
+        }
+
+        .container p {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .upload-btn-wrapper input[type="file"] {
+            font-size: 20px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-btn-wrapper button {
+            background-color: #002244;
+            color: white;
+            margin-top: 20px;
+            padding: 15px 25px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-btn-wrapper button:hover {
+            background-color: #094179;
+        }
+
+        .select-language {
+            background-color: #fff;
+            border: 2px solid #002244;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 18px;
+            color: #333;
+            width: 200px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        .select-language:focus {
+            border-color: #094179;
+            outline: none;
+        }
+
+        .align-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .align-row > * {
+            vertical-align: middle;
+        }
+
+        .result {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            font-size: 1.2em;
+            color: #333;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .error {
+            color: red;
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+
+        footer {
+            background-color: #333;
+            color: white;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 1em;
+            margin: 0;
+        }
+
+        .loading {
+            display: none;
+            font-size: 1.5em;
+            color: #002244;
+            margin-top: 20px;
+        }
+
+        .loading span {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body style="background-image: url(
+'https://f5b623aa.delivery.rocketcdn.me/wp-content/uploads/2022/12/Blog_Difference-Between-Speech-Voice-Recognition.jpg');  background-repeat: no-repeat;  background-attachment: fixed;
+background-size: cover;
+">
+
+    <header>
+        <h1 id="title">التعرف على الصوت</h1>
+        
+    </header>
+
+    <div class="container">
+        <h2 id="uploadPrompt">قم بتحميل ملف الصوت</h2>
+        <p id="fileFormatInfo">اختر ملف للتعرف على النص.</p>
+
+        <div class="align-row">
+            <div class="upload-btn-wrapper">
+                <button id="transcribeButton">اختيار ملف</button>
+                <input type="file" id="fileInput" >
+            </div>
+
+            <select class="select-language" id="languageSelect">
+                <option value="fusha">الفصحى</option>
+                <option value="msa">الفصحى الحديثة</option>
+            </select>
+        </div>
+
+        <div id="transcriptionResult" class="result"></div>
+        <div id="errorResult" class="error"></div>
+        <div id="loading" class="loading">
+            <span>جاري المعالجة...</span>
+        </div>
+    </div>
+
+    <footer>
+        <p id="footerText">&copy; 2024 جميع الحقوق محفوظة</p>
+    </footer>
+
+    <select id="interfaceLanguage" style="position: absolute; top: 10px; left: 10px; background-color: #fff; border: 1px solid #002244; padding: 5px 10px;">
+        <option value="ar">العربية</option>
+        <option value="en">English</option>
+    </select>
+
+    <script>
+        // Language translations
+        const translations = {
+            ar: {
+                mainTitle:"واجهة الموقع - التعرف على الصوت",
+                title: "التعرف على الصوت",
+                uploadPrompt: "قم بتحميل ملف الصوت",
+                fileFormatInfo: "اختر ملف بصيغة للتعرف على النص.",
+                transcribeButton: "اختيار ملف",
+                loading: "جاري المعالجة...",
+                errorNoFile: "يرجى اختيار ملف صوت.",
+                footerText: "&copy; 2024 جميع الحقوق محفوظة",
+            },
+            en: {
+                mainTitle:"Website Interface - Voice Recognition",
+                title: "Voice Recognition",
+                uploadPrompt: "Upload an Audio File",
+                fileFormatInfo: "Choose afile to transcribe.",
+                transcribeButton: "Choose File",
+                loading: "Processing...",
+                errorNoFile: "Please select an audio file.",
+                footerText: "&copy; 2024 All rights reserved",
+            }
+        };
+
+        // Function to update the interface language
+        function updateInterfaceLanguage(lang) {
+            document.body.lang = lang;
+            document.getElementById('title').textContent = translations[lang].mainTitle;
+            document.getElementById('title').textContent = translations[lang].title;
+            document.getElementById('uploadPrompt').textContent = translations[lang].uploadPrompt;
+            document.getElementById('fileFormatInfo').textContent = translations[lang].fileFormatInfo;
+            document.getElementById('transcribeButton').textContent = translations[lang].transcribeButton;
+            document.getElementById('loading').textContent = translations[lang].loading;
+            document.getElementById('footerText').innerHTML = translations[lang].footerText;
+
+            // Update the page title
+            document.title = translations[lang].mainTitle;
+
+            // Update the language options
+            const languageSelect = document.getElementById('languageSelect');
+            if (lang === 'ar') {
+                languageSelect.innerHTML = `
+                    <option value="fusha">الفصحى</option>
+                    <option value="msa">الفصحى الحديثة</option>
+                `;
+            } else {
+                languageSelect.innerHTML = `
+                    <option value="fusha">Classical Arabic</option>
+                    <option value="msa">Modern Standard Arabic</option>
+                `;
+            }
+        }
+
+        // Event listener for changing language
+        document.getElementById('interfaceLanguage').addEventListener('change', function () {
+            updateInterfaceLanguage(this.value);
+        });
+
+        // Initialize with Arabic as the default language
+        updateInterfaceLanguage('ar');
+
+        async function transcribe(language) {
+            const fileInput = document.getElementById('fileInput');
+            const transcriptionResult = document.getElementById('transcriptionResult');
+            const errorResult = document.getElementById('errorResult');
+            const loading = document.getElementById('loading');
+
+            transcriptionResult.textContent = '';
+            errorResult.textContent = '';
+            transcriptionResult.style.display = "none";
+            loading.style.display = "inline";
+
+            if (!fileInput.files.length) {
+                errorResult.textContent = "يرجى اختيار ملف صوت.";
+                loading.style.display = "none";
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/transcribe_${language}/`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    throw new Error('حدث خطأ أثناء معالجة الصوت.');
+                }
+
+                const data = await response.json();
+                transcriptionResult.textContent = data.transcription;
+                transcriptionResult.style.display = "block";
+            } catch (error) {
+                errorResult.textContent = error.message;
+            } finally {
+                loading.style.display = "none";
+                fileInput.value = ''; // Reset file input value
+            }
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function () {
+            const language = document.getElementById('languageSelect').value;
+            transcribe(language);
+        });
+
+        document.getElementById('transcribeButton').addEventListener('click', function () {
+            document.getElementById('fileInput').click();
+        });
+    </script>
+
+</body>
+</html>
